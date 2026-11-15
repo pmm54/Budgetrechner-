@@ -1,0 +1,23 @@
+# Automatisch erzeugte Python-Dateien
+__pycache__/
+*.pyc
+
+# Automatisch erzeugte Windows-Dateien
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Virtuelle Python-Umgebungen
+.venv/
+venv/
+
+# macOS-Dateien
+.DS_Store
+._*
+
+# Lokale Budgetdateien
+
+budgetdaten.txt
+budgetdaten.json
+budgetdaten_test.json
