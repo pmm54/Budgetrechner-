@@ -1,12 +1,20 @@
 from pathlib import Path
 
-DATENDATEI = Path(__file__).with_name("budgetdaten.txt")
+DATENDATEI: Path = Path(__file__).with_name("budgetdaten.txt")
 
 
-def laden():
-    daten = {
+# Lädt Budget, Einnahmen, Ausgaben und Archiv aus der TXT-Datei.
+def daten_laden() -> dict:
+    """
+    Lädt Budget, Einnahmen, Ausgaben und Archiv aus der TXT-Datei.
+
+    Returns:
+        dict: Budget, Einnahmen, Ausgaben und Archiv; ohne Datei leer.
+    """
+    daten: dict = {
         "budget": {},
         "ausgaben": [],
+        "einnahmen": [],
         "archiv": {},
     }
 
@@ -16,9 +24,9 @@ def laden():
     with open(DATENDATEI, "r", encoding="utf-8") as datei:
         for zeile in datei:
             # Die Kategorie steht am Ende und darf selbst ein | enthalten.
-            teile = zeile.rstrip("\n").split("|", 3)
-            art = teile[0]
-            monat = teile[1]
+            teile: list[str] = zeile.rstrip("\n").split("|", 3)
+            art: str = teile[0]
+            monat: str = teile[1]
 
             if art == "BUDGET":
                 daten["budget"] = {
@@ -27,28 +35,62 @@ def laden():
                     "betrag": int(teile[3]),
                 }
             elif art == "ARCHIV":
-                daten["archiv"][monat] = {"budget": int(teile[2]), "ausgaben": []}
+                daten["archiv"][monat] = {
+                    "budget": int(teile[2]),
+                    "ausgaben": [],
+                }
             else:
-                ausgabe = {"monat": monat, "betrag": int(teile[2]), "kategorie": teile[3]}
+                eintrag: dict = {
+                    "monat": monat,
+                    "betrag": int(teile[2]),
+                    "kategorie": teile[3],
+                }
                 if art == "AUSGABE":
-                    daten["ausgaben"].append(ausgabe)
+                    daten["ausgaben"].append(eintrag)
+                elif art == "EINNAHME":
+                    daten["einnahmen"].append(eintrag)
                 elif art == "ARCHIVAUSGABE":
-                    daten["archiv"][monat]["ausgaben"].append(ausgabe)
+                    daten["archiv"][monat]["ausgaben"].append(eintrag)
 
     return daten
 
 
-def speichern(daten):
+# Speichert Budget, Einnahmen, Ausgaben und Archiv in der TXT-Datei.
+def daten_speichern(daten: dict) -> None:
+    """
+    Speichert Budget, Einnahmen, Ausgaben und Archiv in der TXT-Datei.
+
+    Args:
+        daten (dict): Gemeinsame Programmdaten.
+
+    Returns:
+        None: Kein Rückgabewert.
+    """
     with open(DATENDATEI, "w", encoding="utf-8") as datei:
-        budget = daten["budget"]
+        budget: dict = daten["budget"]
         if budget != {}:
-            datei.write(f"BUDGET|{budget['start']}|{budget['dauer']}|{budget['betrag']}\n")
+            datei.write(
+                f"BUDGET|{budget['start']}|{budget['dauer']}"
+                f"|{budget['betrag']}\n"
+            )
 
         for ausgabe in daten["ausgaben"]:
-            datei.write(f"AUSGABE|{ausgabe['monat']}|{ausgabe['betrag']}|{ausgabe['kategorie']}\n")
+            datei.write(
+                f"AUSGABE|{ausgabe['monat']}|{ausgabe['betrag']}"
+                f"|{ausgabe['kategorie']}\n"
+            )
+
+        for einnahme in daten.get("einnahmen", []):
+            datei.write(
+                f"EINNAHME|{einnahme['monat']}|{einnahme['betrag']}"
+                f"|{einnahme['kategorie']}\n"
+            )
 
         for monat in daten["archiv"]:
-            eintrag = daten["archiv"][monat]
+            eintrag: dict = daten["archiv"][monat]
             datei.write(f"ARCHIV|{monat}|{eintrag['budget']}\n")
             for ausgabe in eintrag["ausgaben"]:
-                datei.write(f"ARCHIVAUSGABE|{monat}|{ausgabe['betrag']}|{ausgabe['kategorie']}\n")
+                datei.write(
+                    f"ARCHIVAUSGABE|{monat}|{ausgabe['betrag']}"
+                    f"|{ausgabe['kategorie']}\n"
+                )
